@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+
+err() {
+  echo "redo: error: $1"
+  echo "redo: usage: redo <migration_name>"
+  exit 1
+}
+
+[[ -d ./db/migrate ]] || err "dir db/migrate not found"
+
+migrations=$(find './db/migrate' -name '*.rb' | grep "$1" | sed 's#^\./db/migrate/##')
+declare -A times
+for m in $migrations; do
+  time=$(echo "$m" | sed 's#\([0-9]*\)_.*.rb#\1#')
+  name=$(echo "$m" | sed 's#[0-9]*_\(.*\)\.rb#\1#')
+  times["$name"]="$time"
+done
+
+if [[ ${#times[@]} == 1 ]]; then
+  name="${!times[@]}"
+  ver="${times[$name]}"
+  echo "executing \`bundle exec rake db:migrate:redo VERSION=$ver\`"
+  bundle exec rake db:migrate:redo VERSION="$ver"
+  exit 0
+fi
+
+echo -e "redo: be more specific, candidates are:\n"
+for k in "${!times[@]}"; do
+  echo "$k : ${times[$k]}"
+done
