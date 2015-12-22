@@ -1,30 +1,44 @@
 #!/usr/bin/env bash
+set -u
+set -e
+readonly PROG=$(basename $0)
 
 err() {
-  echo "redo: error: $1"
-  echo "redo: usage: redo <migration_name>"
+  echo "$PROG: error: $1"
+  echo "$PROG: usage: $PROG [migration_name]"
   exit 1
 }
 
-[[ -d ./db/migrate ]] || err "dir db/migrate not found"
+# associative arrays require version >= 4
+(( ${BASH_VERSION%%.*} >= 4 )) || err "bash must be at least version 4"
+(( $# > 2 )) && err "too many args"
+readonly DIR="db/migrate/"
+[[ -d $DIR ]] || err "dir $DIR not found"
 
-migrations=$(find './db/migrate' -name '*.rb' | grep "$1" | sed 's#^\./db/migrate/##')
+migs=$(find "$DIR" -name "*.rb" | sed "s#^${DIR}/##")
+(( $# == 1 )) && migs=$(echo "$migs" | grep "$1")
 declare -A times
-for m in $migrations; do
-  time=$(echo "$m" | sed 's#\([0-9]*\)_.*.rb#\1#')
+for m in $migs; do
   name=$(echo "$m" | sed 's#[0-9]*_\(.*\)\.rb#\1#')
-  times["$name"]="$time"
+  ver=$(echo "$m" | sed 's#\([0-9]*\)_.*.rb#\1#')
+  times["$name"]="$ver"
 done
 
 if [[ ${#times[@]} == 1 ]]; then
   name="${!times[@]}"
   ver="${times[$name]}"
-  echo "executing \`bundle exec rake db:migrate:redo VERSION=$ver\`"
+  echo "$PROG: executing:"
+  set -x
   bundle exec rake db:migrate:redo VERSION="$ver"
+  set +x
   exit 0
 fi
 
-echo -e "redo: be more specific, candidates are:\n"
-for k in "${!times[@]}"; do
-  echo "$k : ${times[$k]}"
+echo -e "$PROG: be more specific, candidates are:\n"
+for t in "${!times[@]}"; do
+  echo "$t : ${times[$t]}"
 done
+
+set +u
+set +e
+exit 1
