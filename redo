@@ -6,6 +6,7 @@ readonly PROG=$(basename $0)
 err() {
   echo "$PROG: error: $1"
   echo "$PROG: usage: $PROG [migration_name]"
+  echo "$PROG: run from the root dir of the Rails project"
   exit 1
 }
 
