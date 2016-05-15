@@ -16,7 +16,7 @@ err() {
 readonly DIR="db/migrate/"
 [[ -d $DIR ]] || err "dir $DIR not found"
 
-migs=$(find "$DIR" -name "*.rb" | sed "s#^${DIR}/##")
+migs=$(find "$DIR" -name "*.rb" | sed "s#^${DIR}##")
 (( $# == 1 )) && migs=$(echo "$migs" | grep "$1")
 declare -A times
 for m in $migs; do
