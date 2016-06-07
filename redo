@@ -4,17 +4,22 @@ set -e
 readonly PROG=$(basename $0)
 
 err() {
-  echo "$PROG: error: $1"
-  echo "$PROG: usage: $PROG [migration_name]"
+  (( $1 == 1 )) && usage
+  shift
+  echo "$PROG: error: $@"
   echo "$PROG: run from the root dir of the Rails project"
   exit 1
 }
 
+usage() {
+  echo "$PROG: usage: $PROG [migration_name]"
+}
+
 # associative arrays require version >= 4
-(( ${BASH_VERSION%%.*} >= 4 )) || err "bash must be at least version 4"
-(( $# > 2 )) && err "too many args"
+(( ${BASH_VERSION%%.*} >= 4 )) || err 0 "bash must be at least version 4"
+(( $# > 1 )) && err 1 "provide one or zero args, not more"
 readonly DIR="db/migrate/"
-[[ -d $DIR ]] || err "dir $DIR not found"
+[[ -d $DIR ]] || err 0 "dir $DIR not found"
 
 migs=$(find "$DIR" -name "*.rb" | sed "s#^${DIR}##")
 (( $# == 1 )) && migs=$(echo "$migs" | grep "$1")
