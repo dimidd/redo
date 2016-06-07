@@ -31,21 +31,17 @@ for m in $migs; do
   [[ "$m" =~ $pattern ]] && mig_times["${BASH_REMATCH[2]}"]="${BASH_REMATCH[1]}"
 done
 
-if [[ ${#times[@]} == 1 ]]; then
-  name="${!times[@]}"
-  ver="${times[$name]}"
+if [[ ${#mig_times[@]} == 1 ]]; then
   echo "$PROG: executing:"
   set -x
-  bundle exec rake db:migrate:redo VERSION="$ver"
+  bundle exec rake db:migrate:redo VERSION="${mig_times[*]}r"
   set +x
-  exit 0
+else
+    echo -e "$PROG: be more specific, candidates are:\n"
+    for t in "${!mig_times[@]}"; do
+      printf "%-40s : %s\n" $t ${mig_times[$t]}
+    done
 fi
-
-echo -e "$PROG: be more specific, candidates are:\n"
-for t in "${!times[@]}"; do
-  echo "$t : ${times[$t]}"
-done
 
 set +u
 set +e
-exit 1
