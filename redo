@@ -21,9 +21,9 @@ usage() {
 readonly DIR="db/migrate/"
 [[ -d $DIR ]] || err 0 "dir $DIR not found"
 
-migs=$(find "$DIR" -name "*.rb" | sed "s#^${DIR}##")
-(( $# == 1 )) && migs=$(echo "$migs" | grep "$1")
-declare -A times
+glob='*.rb'
+(( $# == 1 )) && glob="*${1}${glob}"
+migs=$(find "$DIR" -name "$glob" | sed "s#^${DIR}##")
 for m in $migs; do
   name=$(echo "$m" | sed 's#[0-9]*_\(.*\)\.rb#\1#')
   ver=$(echo "$m" | sed 's#\([0-9]*\)_.*.rb#\1#')
