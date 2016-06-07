@@ -24,10 +24,11 @@ readonly DIR="db/migrate/"
 glob='*.rb'
 (( $# == 1 )) && glob="*${1}${glob}"
 migs=$(find "$DIR" -name "$glob" | sed "s#^${DIR}##")
+
+declare -A mig_times
+pattern="([0-9]+)_([^\.]+)\.rb"
 for m in $migs; do
-  name=$(echo "$m" | sed 's#[0-9]*_\(.*\)\.rb#\1#')
-  ver=$(echo "$m" | sed 's#\([0-9]*\)_.*.rb#\1#')
-  times["$name"]="$ver"
+  [[ "$m" =~ $pattern ]] && mig_times["${BASH_REMATCH[2]}"]="${BASH_REMATCH[1]}"
 done
 
 if [[ ${#times[@]} == 1 ]]; then
