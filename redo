@@ -32,9 +32,9 @@ for m in $migs; do
 done
 
 if [[ ${#mig_times[@]} == 1 ]]; then
-  echo "$PROG: executing:"
+  echo "$PROG: executing ${!mig_times[@]} :"
   set -x
-  bundle exec rake db:migrate:redo VERSION="${mig_times[*]}r"
+  bundle exec rake db:migrate:redo VERSION="${mig_times[*]}"
   set +x
 else
     echo -e "$PROG: be more specific, candidates are:\n"
